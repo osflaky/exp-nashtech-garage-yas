@@ -1,0 +1,19 @@
+runs:
+  using: "composite"
+  steps:
+    - name: Set up JDK 25
+      uses: actions/setup-java@v4
+      with:
+        java-version: '25'
+        # setup-java has no Temurin 25 build for Windows on ARM64, so use Zulu there (same OpenJDK 25).
+        # Known remaining failure on windows-11-arm: the product *IT tests use Testcontainers
+        # (PostgreSQL, Keycloak), which need a Linux Docker daemon. This runner has none, so all 78
+        # ITs fail at ApplicationContext load. The product code has no platform-specific cause.
+        distribution: ${{ (runner.os == 'Windows' && runner.arch == 'ARM64') && 'zulu' || 'temurin' }}
+        cache: 'maven'
+    - name: Cache SonarCloud packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
